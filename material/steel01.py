@@ -4,7 +4,7 @@ from .material import Material, MaterialState
 '''
 bilinear material with isotropic hardening
 '''
-class Steel01:
+class Steel01(Material):
     def __init__(
             self,
             id: int | str,
@@ -68,7 +68,7 @@ class Steel01:
 
         sig = max(
             c1 - c2,
-            min( (c1-c3), c) )
+            min( (c1+c3), c) )
         
         Et = self.Eh
         if abs(sig-c) < 1e-10:
