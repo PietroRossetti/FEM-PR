@@ -16,19 +16,26 @@ class Elastic(Material):
         if E <= 0:
             raise ValueError(f"Material {id}: attribute E must be positive")
         self.E = E
+        self.state = MaterialState()
         
 
     def compute(
 		    self,
 		    eps: float,
-		    state: MaterialState
 	) -> tuple[float, float]:
         sig = self.E * eps
 		# update trial state
         # caller (Solver) will call commit()
-        state.epsTrial = eps
-        state.sigTrial = sig
+        self.state.epsTrial = eps
+        self.state.sigTrial = sig
         return sig, self.E
+    
+    def getCopy(self):
+        return Elastic(
+            id = self.id,
+            E = self.E,
+            rho = self.rho
+        )
 
     def toDict(self) -> dict:
         return {

@@ -30,20 +30,20 @@ class Steel01(Material):
         # --------------------------------------------------
         self.Eh = self.b * self.E0
         self.epsy = self.fy/self.E0
+        self.state = MaterialState()
 
     def compute(
             self,
             eps: float,
-            state: MaterialState
     ) -> tuple[float,float]:
         
         # --------------------------------------------------
         # retrieve history variables
         # --------------------------------------------------
-        epsP = state.epsCommitted                       # strain at previous converged step
-        sigP = state.sigCommitted                       # stress at previous converged step
-        epsmin = state.hstvCommitted.get("epsmin",0.0)  # max eps in compression
-        epsmax = state.hstvCommitted.get("epsmax",0.0)  # max eps in tension
+        epsP = self.state.epsCommitted                       # strain at previous converged step
+        sigP = self.state.sigCommitted                       # stress at previous converged step
+        epsmin = self.state.hstvCommitted.get("epsmin",0.0)  # max eps in compression
+        epsmax = self.state.hstvCommitted.get("epsmax",0.0)  # max eps in tension
         # --------------------------------------------------
         # calculate current strain increment
         # -------------------------------------------------- 
@@ -81,14 +81,27 @@ class Steel01(Material):
         # --------------------------------------------------
         # update trial state
         # --------------------------------------------------
-        state.epsTrial = eps
-        state.sigTrial = sig
-        state.hstvTrial = {
+        self.state.epsTrial = eps
+        self.state.sigTrial = sig
+        self.state.hstvTrial = {
             "epsmin": epsmin,
             "epsmax": epsmax }
         
         return sig, Et
     
+
+    def getCopy(self):
+        return Steel01(
+            id = self.id,
+            fy = self.fy,
+            E0 = self.E0,
+            b = self.b,
+            a1 = self.a1,
+            a2 = self.a2,
+            a3 = self.a3,
+            a4 = self.a4,
+            rho = self.rho
+        )
 
     def toDict(self) -> dict:
         return {

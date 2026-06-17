@@ -1,5 +1,5 @@
 from material import *
-
+from node import Node
 
 elastic = Elastic(1,1000)
 
@@ -19,3 +19,10 @@ sig, E = steel.materialTester(eps)
 for sigi, Ei in zip(sig,E):
     print("sig: ",sigi,"E: ", Ei)
 
+
+n1 = Node(1,0.,1.,2.)
+
+x,y,z = n1.getCoord()
+print()
+print("-"*100)
+print(x,y,z)

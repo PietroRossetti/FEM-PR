@@ -65,13 +65,13 @@ class Material(ABC):
         
         self.id = id
         self.rho = rho
+        self.state = MaterialState()
     
 
     @abstractmethod
     def compute(
         self,
         eps: float,
-        state: MaterialState
     ) -> tuple[float, float]:
         '''
         compute stress and stiffness given strain
@@ -81,6 +81,11 @@ class Material(ABC):
         O:  sig (trial stress)
             E   (trial stiffness)
         '''
+        ...
+
+    @abstractmethod
+    def getCopy(self):
+        # return a copy (es. return Elastic(id = self.id, E = self.E, rho = self.rho) )
         ...
     
     @abstractmethod
@@ -108,20 +113,19 @@ class Material(ABC):
         each step of strain history is committed
         '''
 
-        state = MaterialState()
-
         stressHistory, stiffnessHistory = [] , []
 
         for strain in strainHistory:
 
-            stress, stiffness = self.compute(strain,state)
-            state.commit()
+            stress, stiffness = self.compute(strain)
+            self.state.commit()
             stressHistory.append(stress)
             stiffnessHistory.append(stiffness)
 
         return stressHistory, stiffnessHistory
     
 
-
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(id={self.id!r})"
+    
+
