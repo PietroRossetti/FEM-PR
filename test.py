@@ -1,5 +1,6 @@
 from material import *
 from node import Node
+from model import Model
 
 elastic = Elastic(1,1000)
 
@@ -26,3 +27,9 @@ x,y,z = n1.getCoord()
 print()
 print("-"*100)
 print(x,y,z)
+
+m = Model()
+m.material("steel01",1,450,210000,0.005)
+print(m.materials)
+m.section("aggregator",1,1,1)
+print(m.sections[1].sectionState)

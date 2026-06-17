@@ -34,8 +34,7 @@ class Elastic(Material):
         return Elastic(
             id = self.id,
             E = self.E,
-            rho = self.rho
-        )
+            rho = self.rho)
 
     def toDict(self) -> dict:
         return {

@@ -14,8 +14,6 @@ class Aggregator(Section):
     ):
         super().__init__(id)
 
-        self.axialLawID = axialMaterial.id
-        self.bendingLawID = bendingMaterial.id
         self.axialMaterial = axialMaterial
         self.bendingMaterial = bendingMaterial
         self.sectionState = SectionState()

@@ -9,8 +9,8 @@ class Domain:
     """
     Repository of model objects.
 
-    Materials and sections stored here are prototypes. Components that need a
-    stateful instance should ask for a copy, so the prototype state stays clean.
+    Materials and sections defined by user are stored here.
+    Instance that requires a copy (es. uniaxial material) remain untouched
     """
 
     def __init__(self) -> None:

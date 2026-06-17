@@ -13,28 +13,23 @@ class Model(Domain):
     def __init__(self) -> None:
         super().__init__()
 
-    def material(self, materialType: str, **kwargs):
-        materialType = self._normalize_type(materialType)
-
+    def material(self, materialType: str, *args, **kwargs):
         if materialType == "elastic":
-            return self.addElasticMaterial(**kwargs)
+            return self.addElasticMaterial(*args, **kwargs)
         if materialType == "steel01":
-            return self.addSteel01Material(**kwargs)
+            return self.addSteel01Material(*args, **kwargs)
 
         raise ValueError(f"Unknown material type {materialType!r}")
 
-    def section(self, sectionType: str, **kwargs):
-        sectionType = self._normalize_type(sectionType)
-
+    def section(self, sectionType: str, *args, **kwargs):
         if sectionType in ("elastic", "elasticsection"):
-            return self.addElasticSection(**kwargs)
+            return self.addElasticSection(*args, **kwargs)
         if sectionType == "aggregator":
-            return self.addAggregator(**kwargs)
+            return self.addAggregator(*args, **kwargs)
 
         raise ValueError(f"Unknown section type {sectionType!r}")
 
-    def element(self, elementType: str, **kwargs):
-        elementType = self._normalize_type(elementType)
+    def element(self, elementType: str, *args, **kwargs):
         raise ValueError(f"Unknown element type {elementType!r}")
 
     def addElasticMaterial(
@@ -97,6 +92,3 @@ class Model(Domain):
         )
         self.addSection(section)
         return section
-
-    def _normalize_type(self, objectType: str) -> str:
-        return objectType.lower().replace("_", "").replace("-", "")
