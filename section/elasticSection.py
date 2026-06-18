@@ -1,7 +1,6 @@
-from section import Section, SectionState
+from section import Section
 from numpy import ndarray
 import numpy as np
-
 
 class ElasticSection(Section):
     def __init__(

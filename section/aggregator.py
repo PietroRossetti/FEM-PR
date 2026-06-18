@@ -22,16 +22,16 @@ class Aggregator(Section):
     def setTrialSectionDeformation(self, deformations: ndarray) -> None:
         self.sectionState.sectionDeformationsTrial = deformations
 
-        axialForce, axialStiffness = self.axialMaterial.compute(float(deformations[0, 0]))
-        bendingMoment, bendingStiffness = self.bendingMaterial.compute(float(deformations[1, 0]))
+        N, EA = self.axialMaterial.compute(float(deformations[0, 0]))
+        M, EI = self.bendingMaterial.compute(float(deformations[1, 0]))
 
         self.sectionState.sectionForcesTrial = np.array([
-            [axialForce],
-            [bendingMoment]
+            [N],
+            [M]
         ])
         self.sectionStiffness = np.array([
-            [axialStiffness, 0.0],
-            [0.0, bendingStiffness]
+            [EA, 0.0],
+            [0.0, EI]
         ])
 
     def getSectionForces(self) -> ndarray:
@@ -42,7 +42,7 @@ class Aggregator(Section):
 
     def getCopy(self):
         return Aggregator(
-            id=self.id,
-            axialMaterial=self.axialMaterial.getCopy(),
-            bendingMaterial=self.bendingMaterial.getCopy()
+            id= self.id,
+            axialMaterial = self.axialMaterial.getCopy(),
+            bendingMaterial = self.bendingMaterial.getCopy()
         )

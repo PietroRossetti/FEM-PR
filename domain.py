@@ -3,6 +3,8 @@ from __future__ import annotations
 from node import Node
 from material.material import Material
 from section.section import Section
+from beamIntegration.beamIntegration import BeamIntegration
+from element.element import Element
 
 
 class Domain:
@@ -17,7 +19,8 @@ class Domain:
         self.nodes: dict[int | str, Node] = {}
         self.materials: dict[int | str, Material] = {}
         self.sections: dict[int | str, Section] = {}
-        self.elements: dict[int | str, object] = {}
+        self.beamIntegrations: dict[int | str, BeamIntegration] = {}
+        self.elements: dict[int | str, Element] = {}
 
     def addNode(self, node: Node) -> None:
         self._add(self.nodes, node, "node")
@@ -28,8 +31,13 @@ class Domain:
     def addSection(self, section: Section) -> None:
         self._add(self.sections, section, "section")
 
+    def addBeamIntegration(self, beamIntegration: BeamIntegration) -> None:
+        self._add(self.beamIntegrations, beamIntegration, "beamIntegration")
+
     def addElement(self, element) -> None:
         self._add(self.elements, element, "element")
+
+
 
     def getNode(self, id: int | str) -> Node:
         return self._get(self.nodes, id, "node")
@@ -39,15 +47,25 @@ class Domain:
 
     def getSection(self, id: int | str) -> Section:
         return self._get(self.sections, id, "section")
+    
+    def getBeamIntegration(self, id: int|str) -> BeamIntegration:
+        return self._get(self.beamIntegrations, id, "beamIntegration")
 
-    def getElement(self, id: int | str):
+    def getElement(self, id: int | str) -> Element:
         return self._get(self.elements, id, "element")
+    
+
 
     def getMaterialCopy(self, id: int | str) -> Material:
         return self._get_copy(self.materials, id, "material")
 
     def getSectionCopy(self, id: int | str) -> Section:
         return self._get_copy(self.sections, id, "section")
+    
+    def getBeamIntegrationCopy(self, id: int|str) -> BeamIntegration:
+        return self._get_copy(self.beamIntegrations, id, "beamIntegration")
+    
+    
 
     def _add(self, objects: dict, obj, objectType: str) -> None:
         if obj.id in objects:
