@@ -25,14 +25,17 @@ class Aggregator(Section):
         N, EA = self.axialMaterial.compute(float(deformations[0, 0]))
         M, EI = self.bendingMaterial.compute(float(deformations[1, 0]))
 
-        self.sectionState.sectionForcesTrial = np.array([
+        s = np.array([
             [N],
             [M]
         ])
-        self.sectionStiffness = np.array([
+        k = np.array([
             [EA, 0.0],
             [0.0, EI]
         ])
+        
+        self.sectionState.sectionForcesTrial = s
+        self.sectionStiffness = k
 
     def getSectionForces(self) -> ndarray:
         return self.sectionState.sectionForcesTrial

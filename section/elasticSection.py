@@ -18,21 +18,24 @@ class ElasticSection(Section):
 
     def setTrialSectionDeformation(self, deformations: ndarray) -> None:
         self.sectionState.sectionDeformationsTrial = deformations
-    
-    def getSectionForces(self):
-        e = self.sectionState.sectionDeformationsTrial
-        k = self.getSectionStiffness()
-        s = k @ e
-        return s
 
-    def getSectionStiffness(self):
-        EA = self.E * self.A
-        EI = self.E* self.I
+        e = deformations
+        EA,EI = self.E*self.A , self.E*self.I
         k = np.array([
-            [EA, 0.0],
-            [0.0, EI]
+            [EA,0.],
+            [0.,EI]
         ])
-        return k
+        s = k @ e
+
+        self.sectionState.sectionForcesTrial = s
+        self.sectionStiffness = k
+
+
+    def getSectionForces(self) -> ndarray:
+        return self.sectionState.sectionForcesTrial
+
+    def getSectionStiffness(self) -> ndarray:
+        return self.sectionStiffness
 
     def getCopy(self):
         return ElasticSection(

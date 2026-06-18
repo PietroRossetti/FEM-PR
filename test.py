@@ -37,8 +37,8 @@ sig, E = steel.materialTester(eps)
 
 print(sig[-1])
 
-eS = "$\epsilon$"
-sS = "$\sigma$"
+eS = r"$\epsilon$"
+sS = r"$\sigma$"
 plt.figure()
 plt.plot(np.arange(1,1+len(eps)) ,eps)
 plt.xlabel("step ID")
@@ -51,7 +51,7 @@ plt.xlabel(eS)
 plt.ylabel(sS)
 plt.title("steel01")
 plt.grid("on")
-plt.show()
+#plt.show()
 
 
 # ---------------------------------------
