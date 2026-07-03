@@ -119,7 +119,7 @@ print("\n","-"*100)
 beam.setTrialDisp(u)
 k = beam.getEleStiffness()
 T = beam.geomTransf.getTransfMatrix() # rotation matrix
-kloc = T.T @ k @ T
+kloc = T @ k @ T.T
 print("k global:\n", k)
 print("k local:\n", kloc)
 print("F global from element:\n", beam.getEleForces())
