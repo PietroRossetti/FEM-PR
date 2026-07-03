@@ -4,26 +4,23 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from node import Node
 from section.section import Section
-
-class GeometricTransformation():
-    ...
-
+from geometricTransformation import GeometricTransformation
 
 class ElementState:
 
-    eleDeformationsCommitted: ndarray
+    eleDispCommitted: ndarray
     eleForcesCommitted: ndarray
 
-    eleDeformationsTrial: ndarray
+    eleDispTrial: ndarray
     eleForcesTrial: ndarray
 
     def commit(self):
-        self.eleDeformationsCommitted = self.eleDeformationsTrial
-        self.elementForcesCommitted = self.eleForcesCommitted
-    
+        self.eleDispCommitted = self.eleDispTrial.copy()
+        self.eleForcesCommitted = self.eleForcesTrial.copy()
+
     def revert(self):
-        self.eleDeformationsTrial = self.eleDeformationsCommitted
-        self.eleForcesTrial = self.eleForcesCommitted
+        self.eleDispTrial = self.eleDispCommitted.copy()
+        self.eleForcesTrial = self.eleForcesCommitted.copy()
 
 
 class Element(ABC):
@@ -38,4 +35,25 @@ class Element(ABC):
         self.id = id
         self.nodeI = nodeI
         self.nodeJ = nodeJ
-        self.s
+        self.geomTransf = geomTransf
+        
+    
+    @abstractmethod
+    def initialize(self):
+        ...
+    
+    @abstractmethod
+    def setTrialDisp(self):
+        ...
+    
+    @abstractmethod
+    def getEleForces(self) -> ndarray:
+        ...
+    
+    @abstractmethod
+    def getEleStiffness(self) -> ndarray:
+        ...
+    
+    @abstractmethod
+    def getDofIDs(self):
+        return self.nodeI.getDofIDs() + self.nodeJ.getDofIDs()

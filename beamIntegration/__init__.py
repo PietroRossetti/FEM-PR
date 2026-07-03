@@ -9,5 +9,5 @@ from .gaussLobatto import GaussLobatto
 __all__ = [
     "BeamIntegration",
     "GaussLegendre",
-    "GaussLobatto"
+    "GaussLobatto",
 ]

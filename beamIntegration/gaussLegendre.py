@@ -1,7 +1,4 @@
 from __future__ import annotations
-
-from section.section import Section
-
 from .beamIntegration import BeamIntegration
 
 
@@ -46,6 +43,13 @@ class GaussLegendre(BeamIntegration):
             
             case _:
                 raise ValueError("GaussLegendre supports 1 to 8 integration points")
+            
+    
+    def getLocations(self, L:float) -> list[float]:
+        return [0.5*L*(x+1.0) for x in self.position]
+
+    def getWeights(self, L:float) -> list[float]:
+        return [0.5*L*wt for wt in self.weight]
 
     def getCopy(self) -> BeamIntegration:
         return GaussLegendre(

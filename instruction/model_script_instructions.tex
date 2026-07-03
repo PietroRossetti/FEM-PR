@@ -1,0 +1,341 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue!70!black},
+    stringstyle=\color{green!40!black},
+    commentstyle=\color{gray},
+    showstringspaces=false,
+    frame=single,
+    breaklines=true,
+    tabsize=4
+}
+
+\title{FEM-PR: istruzioni per lo script del modello}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Idea generale}
+
+Il progetto e' organizzato intorno a due classi principali:
+
+\begin{itemize}
+    \item \texttt{Domain}: contiene gli oggetti del modello, divisi per categoria
+    (\texttt{nodes}, \texttt{materials}, \texttt{sections}, \texttt{beamIntegrations},
+    \texttt{geometricTransformations}, \texttt{elements}).
+    \item \texttt{Model}: fornisce una sintassi compatta per creare gli oggetti e
+    registrarli nel \texttt{Domain}.
+\end{itemize}
+
+L'utente normalmente lavora con \texttt{Model}. Per esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+from model import Model
+
+m = Model()
+
+m.node(1, 0.0, 0.0)
+m.node(2, 0.0, 3.0)
+\end{lstlisting}
+
+Ogni metodo di costruzione crea un oggetto, lo aggiunge al \texttt{Domain} e lo
+restituisce. Quindi sono equivalenti, come stile d'uso:
+
+\begin{lstlisting}[style=pythonstyle]
+m.node(1, 0.0, 0.0)
+\end{lstlisting}
+
+oppure:
+
+\begin{lstlisting}[style=pythonstyle]
+n1 = m.node(1, 0.0, 0.0)
+\end{lstlisting}
+
+Nel primo caso il nodo viene comunque salvato in \texttt{m.nodes}; nel secondo
+caso si conserva anche un riferimento locale all'oggetto.
+
+\section{Pattern prototipo e copia}
+
+Alcuni oggetti vengono definiti come prototipi nel \texttt{Domain}. Quando un
+altro oggetto ha bisogno di usarli con stato indipendente, viene creata una copia.
+
+\subsection{Materiali}
+
+I materiali definiti dall'utente sono salvati in \texttt{m.materials}. Le sezioni
+che hanno bisogno di materiali indipendenti usano copie dei materiali.
+
+\subsection{Sezioni}
+
+Le sezioni sono salvate in \texttt{m.sections}. Gli elementi possono creare copie
+delle sezioni, ad esempio una copia per ogni punto di integrazione.
+
+\subsection{Trasformazioni geometriche}
+
+La trasformazione geometrica e' un caso particolare. Nel modello si definisce
+solo il tipo e l'identificativo:
+
+\begin{lstlisting}[style=pythonstyle]
+m.geomTransf("linear", "linearTransf")
+\end{lstlisting}
+
+La trasformazione diventa concreta solo quando viene assegnata a un elemento,
+perche' in quel momento sono noti \texttt{nodeI} e \texttt{nodeJ}. Il metodo
+\texttt{getGeomTransfCopy(...)} crea quindi una copia inizializzata sui nodi
+dell'elemento.
+
+\section{Sintassi dello script del modello}
+
+\subsection{Creazione del modello}
+
+\begin{lstlisting}[style=pythonstyle]
+from model import Model
+
+m = Model()
+\end{lstlisting}
+
+\subsection{Nodi}
+
+\begin{lstlisting}[style=pythonstyle]
+m.node(id, x, y)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo del nodo, intero o stringa.
+    \item \texttt{x}, \texttt{y}: coordinate del nodo nel piano.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.node(1, 0.0, 0.0)
+m.node(2, 0.0, 3.0)
+\end{lstlisting}
+
+\subsection{Materiali}
+
+\subsubsection{\texttt{elastic}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.material("elastic", id, E, rho=0.0)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo del materiale.
+    \item \texttt{E}: modulo elastico.
+    \item \texttt{rho}: densita', opzionale.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.material("elastic", "matElastic", 210000.0)
+\end{lstlisting}
+
+\subsubsection{\texttt{steel01}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.material("steel01", id, fy, E0, b, a1=0.07, a2=2, a3=0.07, a4=2, rho=0.0)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo del materiale.
+    \item \texttt{fy}: tensione di snervamento.
+    \item \texttt{E0}: modulo elastico iniziale.
+    \item \texttt{b}: rapporto di incrudimento.
+    \item \texttt{a1}, \texttt{a2}, \texttt{a3}, \texttt{a4}: parametri opzionali del modello.
+    \item \texttt{rho}: densita', opzionale.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.material("steel01", "mat1", 450.0, 210000.0, 0.005)
+\end{lstlisting}
+
+\subsection{Sezioni}
+
+\subsubsection{\texttt{elasticSection}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.section("elasticSection", id, E, A, I)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo della sezione.
+    \item \texttt{E}: modulo elastico.
+    \item \texttt{A}: area.
+    \item \texttt{I}: momento di inerzia.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.section("elasticSection", "secElastic", 210000.0, 0.02, 8.0e-5)
+\end{lstlisting}
+
+\subsubsection{\texttt{aggregator}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.section("aggregator", id, axialID, bendingID)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo della sezione.
+    \item \texttt{axialID}: identificativo del materiale per la risposta assiale.
+    \item \texttt{bendingID}: identificativo del materiale per la risposta flessionale.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.material("steel01", "mat1", 450.0, 210000.0, 0.005)
+m.section("aggregator", "sec1", "mat1", "mat1")
+\end{lstlisting}
+
+\subsection{Integrazione lungo l'elemento}
+
+\subsubsection{\texttt{lobatto}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.beamIntegration("lobatto", id, nIP, sectionID)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo della regola di integrazione.
+    \item \texttt{nIP}: numero di punti di integrazione.
+    \item \texttt{sectionID}: identificativo della sezione associata.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.beamIntegration("lobatto", "beamInt1", 5, "sec1")
+\end{lstlisting}
+
+\subsubsection{\texttt{legendre}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.beamIntegration("legendre", id, nIP, sectionID)
+\end{lstlisting}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.beamIntegration("legendre", "beamInt2", 3, "sec1")
+\end{lstlisting}
+
+\subsection{Trasformazioni geometriche}
+
+\subsubsection{\texttt{linear}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.geomTransf("linear", id)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo della trasformazione geometrica.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.geomTransf("linear", "linearTransf")
+\end{lstlisting}
+
+\subsection{Elementi}
+
+\subsubsection{\texttt{dispBeamColumn}}
+
+\begin{lstlisting}[style=pythonstyle]
+m.element("dispBeamColumn", id, nodeI_ID, nodeJ_ID, geomTransfID, beamIntID)
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{id}: identificativo dell'elemento.
+    \item \texttt{nodeI\_ID}: identificativo del nodo iniziale.
+    \item \texttt{nodeJ\_ID}: identificativo del nodo finale.
+    \item \texttt{geomTransfID}: identificativo della trasformazione geometrica.
+    \item \texttt{beamIntID}: identificativo della regola di integrazione.
+\end{itemize}
+
+Esempio:
+
+\begin{lstlisting}[style=pythonstyle]
+m.element("dispBeamColumn", "dispBC", 1, 2, "linearTransf", "beamInt1")
+\end{lstlisting}
+
+Quando l'elemento viene creato, il modello:
+
+\begin{enumerate}
+    \item recupera i due nodi dal \texttt{Domain};
+    \item crea una copia della trasformazione geometrica inizializzata sui due nodi;
+    \item crea una copia della \texttt{beamIntegration};
+    \item costruisce l'elemento \texttt{DispBeamColumn};
+    \item aggiunge l'elemento a \texttt{m.elements}.
+\end{enumerate}
+
+All'interno di \texttt{DispBeamColumn}, il metodo \texttt{initialize()} crea una
+copia della sezione per ogni punto di integrazione e inizializza vettori e matrici
+dell'elemento.
+
+\section{Esempio completo}
+
+\begin{lstlisting}[style=pythonstyle]
+from model import Model
+
+m = Model()
+
+m.node(1, 0.0, 0.0)
+m.node(2, 0.0, 3.0)
+
+m.material("steel01", "mat1", 450.0, 210000.0, 0.005)
+m.section("aggregator", "sec1", "mat1", "mat1")
+
+m.beamIntegration("lobatto", "beamInt1", 5, "sec1")
+m.geomTransf("linear", "linearTransf")
+
+ele = m.element("dispBeamColumn", "dispBC", 1, 2, "linearTransf", "beamInt1")
+
+print(m.nodes)
+print(m.materials)
+print(m.sections)
+print(m.beamIntegrations)
+print(m.geometricTransformations)
+print(m.elements)
+\end{lstlisting}
+
+\section{Metodi espliciti disponibili}
+
+Oltre alla sintassi compatta, \texttt{Model} espone anche metodi espliciti:
+
+\begin{lstlisting}[style=pythonstyle]
+m.addElasticMaterial(id, E, rho=0.0)
+m.addSteel01Material(id, fy, E0, b, a1=0.07, a2=2, a3=0.07, a4=2, rho=0.0)
+
+m.addElasticSection(id, E, A, I)
+m.addAggregator(id, axialID, bendingID)
+
+m.addGaussLobatto(id, nIP, sectionID)
+m.addGaussLegendre(id, nIP, sectionID)
+
+m.addLinearGeomTransf(id)
+
+m.addDispBeamColumn(id, nodeI_ID, nodeJ_ID, geomTransfID, beamIntID)
+\end{lstlisting}
+
+Questi metodi sono piu' espliciti e possono essere comodi durante debug,
+documentazione o uso con suggerimenti dell'IDE.
+
+\end{document}

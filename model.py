@@ -1,19 +1,28 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload, Literal
 
 from domain import Domain
+
+#node
+from node import Node
 
 # material types
 from material.elastic import Elastic
 from material.steel01 import Steel01
+
 # section types
-from section.section import Section
 from section.aggregator import Aggregator
 from section.elasticSection import ElasticSection
 
 # beam integration types
 from beamIntegration.gaussLegendre import GaussLegendre
 from beamIntegration.gaussLobatto import GaussLobatto
+
+# geometric transformation types
+from geometricTransformation.linearTransformation import LinearTransformation
+
+# element types
+from element.dispBeamColumn import DispBeamColumn
 
 
 class Model(Domain):
@@ -26,6 +35,12 @@ class Model(Domain):
     # ----------------------------------------------------------------------------------------------
     #           IMPORT TYPES (material, section, beamIntegration)
     # ----------------------------------------------------------------------------------------------
+    def node(self, id: str|int, x: float, y: float):
+        node = Node(id, x, y)
+        self.addNode(node)
+        return node
+        
+
     def material(self, materialType: str, *args, **kwargs):
         if materialType == "elastic":
             return self.addElasticMaterial(*args, **kwargs)
@@ -49,8 +64,17 @@ class Model(Domain):
             return self.addGaussLegendre(*args, **kwargs)
         
         raise ValueError(f"Unknown integration type {integrationType!r}")
+    
+    def geomTransf(self, geomTransfType: str, *args, **kwargs):
+        if geomTransfType == "linear":
+            return self.addLinearGeomTransf(*args, **kwargs)
+        
+        raise ValueError(f"Unknown geometric tranformation {geomTransfType!r}")
 
     def element(self, elementType: str, *args, **kwargs):
+        if elementType == "dispBeamColumn":
+            return self.addDispBeamColumn(*args, **kwargs)
+        
         raise ValueError(f"Unknown element type {elementType!r}")
     
 
@@ -121,3 +145,36 @@ class Model(Domain):
         self.addBeamIntegration(beamIntegration)
 
         return beamIntegration
+
+
+    # ----------------------------------------------------------------------------------------------
+    #           GEOMETRIC TRANSFORMATION LIBRARY
+    # ----------------------------------------------------------------------------------------------
+
+    def addLinearGeomTransf(self, id:int|str) -> LinearTransformation:
+        geomTransf = LinearTransformation(
+            id = id
+        )
+        self.addGeometricTransformation(geomTransf)
+
+        return geomTransf
+
+    # ----------------------------------------------------------------------------------------------
+    #           ELEMENT LIBRARY
+    # ----------------------------------------------------------------------------------------------
+
+    def addDispBeamColumn(self, id: int|str, nodeI_ID: int|str, nodeJ_ID: int|str, geomTransfID: int|str, beamIntID: int|str) ->DispBeamColumn:
+        
+        nodeI = self.getNode(nodeI_ID)
+        nodeJ = self.getNode(nodeJ_ID)
+
+        element = DispBeamColumn(
+            id = id,
+            nodeI = nodeI,
+            nodeJ = nodeJ,
+            geomTransf = self.getGeomTransfCopy(geomTransfID, nodeI,nodeJ) ,
+            beamIntegration = self.getBeamIntegrationCopy(beamIntID)
+        )
+        self.addElement(element)
+
+        return element

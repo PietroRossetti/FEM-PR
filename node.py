@@ -6,7 +6,6 @@ class Node:
     id: int | str
     x: float
     y: float
-    z: float = 0.0
     
     DOFs: list = field(default_factory=list)
     '''
@@ -14,15 +13,17 @@ class Node:
     reactions: dict = field(default_factory=dict)
     constraints: dict = field(default_factory=dict)
     '''
-    def getCoord(self) -> tuple[float, float, float]:
-        return (self.x, self.y, self.z)
+    def getCoord(self) -> tuple[float, float]:
+        return (self.x, self.y)
+    
+    def getDofIDs(self) -> list:
+        return self.DOFs
 
     def toDict(self) -> dict:
         return {
             "id": self.id,
             "x": self.x,
             "y": self.y,
-            "z": self.z,
             "DOFs": self.DOFs            
         }
     
@@ -32,6 +33,5 @@ class Node:
             id = data["id"],
             x  = data["x"],
             y  = data["y"],
-            z  = data["z"],
             DOFs = data.get("DOFs",[])
         )

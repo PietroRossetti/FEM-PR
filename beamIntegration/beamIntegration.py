@@ -42,8 +42,10 @@ class BeamIntegration(ABC):
     def getTheSection(self) -> Section:
         return self.theSection
 
-    def getLocations(self) -> list[float]:
-        return self.position.copy()
+    @abstractmethod
+    def getLocations(self, L:float) -> list[float]:
+        return ...
 
-    def getWeights(self) -> list[float]:
-        return self.weight.copy()
+    @abstractmethod
+    def getWeights(self, L:float) -> list[float]:
+        return ...

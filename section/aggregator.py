@@ -17,11 +17,11 @@ class Aggregator(Section):
         self.axialMaterial = axialMaterial
         self.bendingMaterial = bendingMaterial
         self.sectionState = SectionState()
-        self.sectionStiffness = np.zeros((2, 2))
+        self.sectionStiffness = np.zeros((2,2))
 
     def setTrialSectionDeformation(self, deformations: ndarray) -> None:
+        
         self.sectionState.sectionDeformationsTrial = deformations
-
         N, EA = self.axialMaterial.compute(float(deformations[0, 0]))
         M, EI = self.bendingMaterial.compute(float(deformations[1, 0]))
 

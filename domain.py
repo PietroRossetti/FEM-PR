@@ -4,6 +4,7 @@ from node import Node
 from material.material import Material
 from section.section import Section
 from beamIntegration.beamIntegration import BeamIntegration
+from geometricTransformation.geometricTransformation import GeometricTransformation
 from element.element import Element
 
 
@@ -20,6 +21,7 @@ class Domain:
         self.materials: dict[int | str, Material] = {}
         self.sections: dict[int | str, Section] = {}
         self.beamIntegrations: dict[int | str, BeamIntegration] = {}
+        self.geometricTransformations: dict[int|str, GeometricTransformation] = {}
         self.elements: dict[int | str, Element] = {}
 
     def addNode(self, node: Node) -> None:
@@ -33,6 +35,9 @@ class Domain:
 
     def addBeamIntegration(self, beamIntegration: BeamIntegration) -> None:
         self._add(self.beamIntegrations, beamIntegration, "beamIntegration")
+    
+    def addGeometricTransformation(self, geomTransf: GeometricTransformation) -> None:
+        self._add(self.geometricTransformations, geomTransf, "geometricTransformation")
 
     def addElement(self, element) -> None:
         self._add(self.elements, element, "element")
@@ -50,6 +55,9 @@ class Domain:
     
     def getBeamIntegration(self, id: int|str) -> BeamIntegration:
         return self._get(self.beamIntegrations, id, "beamIntegration")
+    
+    def getGeomTransf(self, id: int|str) -> GeometricTransformation:
+        return self._get(self.geometricTransformations, id, "geometricTransformation")
 
     def getElement(self, id: int | str) -> Element:
         return self._get(self.elements, id, "element")
@@ -64,6 +72,15 @@ class Domain:
     
     def getBeamIntegrationCopy(self, id: int|str) -> BeamIntegration:
         return self._get_copy(self.beamIntegrations, id, "beamIntegration")
+    
+    def getGeomTransfCopy(self, id: int|str, nodeI: Node, nodeJ: Node) -> GeometricTransformation:
+
+        geoTransf = self.getGeomTransf(id)
+
+        try:
+            return geoTransf.getCopy(nodeI, nodeJ)
+        except AttributeError as exc:
+            raise TypeError(f"GEOMETRIC TRANSFORMATION {id!r} does not implement getCopy()") from exc
     
     
 

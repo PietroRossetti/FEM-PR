@@ -7,7 +7,7 @@ from .elasticSection import ElasticSection
 from .aggregator import Aggregator
 
 __all__ = [
-    "Section", "SectionState", # section.py
-    "ElasticSection", # elasticSection.py
-    "Aggregator" # aggregator.py
+    "Section", "SectionState",  # section.py
+    "ElasticSection",  # elasticSection.py
+    "Aggregator",  # aggregator.py
 ]

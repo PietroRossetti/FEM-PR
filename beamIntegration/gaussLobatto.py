@@ -43,6 +43,13 @@ class GaussLobatto(BeamIntegration):
             
             case _:
                 raise ValueError("GaussLobatto supports 2 to 8 integration points")
+            
+
+    def getLocations(self, L:float) -> list[float]:
+        return [0.5*L*(x+1.0) for x in self.position]
+
+    def getWeights(self, L:float) -> list[float]:
+        return [0.5*L*wt for wt in self.weight]
 
     def getCopy(self) -> BeamIntegration:
         return GaussLobatto(
