@@ -32,18 +32,15 @@ class Steel01(Material):
         self.epsy = self.fy/self.E0
         self.state = MaterialState()
 
-    def compute(
-            self,
-            eps: float,
-    ) -> tuple[float,float]:
-        
+    def compute(self, eps: float) -> tuple[float,float]:
         # --------------------------------------------------
         # retrieve history variables
         # --------------------------------------------------
-        epsP = self.state.epsCommitted                       # strain at previous converged step
-        sigP = self.state.sigCommitted                       # stress at previous converged step
-        epsmin = self.state.hstvCommitted.get("epsmin",0.0)  # max eps in compression
-        epsmax = self.state.hstvCommitted.get("epsmax",0.0)  # max eps in tension
+        epsP = self.state.strainP                       # strain at previous converged step
+        sigP = self.state.stressP                       # stress at previous converged step
+
+        epsmin = self.state.hstvP.get("epsmin",0.0)     # max eps in compression
+        epsmax = self.state.hstvP.get("epsmax",0.0)     # max eps in tension
         # --------------------------------------------------
         # calculate current strain increment
         # -------------------------------------------------- 
@@ -81,13 +78,20 @@ class Steel01(Material):
         # --------------------------------------------------
         # update trial state
         # --------------------------------------------------
-        self.state.epsTrial = eps
-        self.state.sigTrial = sig
-        self.state.hstvTrial = {
+        self.state.strain = eps
+        self.state.stress = sig
+        self.state.tangent = Et
+        self.state.hstv = {
             "epsmin": epsmin,
             "epsmax": epsmax }
         
         return sig, Et
+    
+    def getStress(self) -> float:
+        return self.state.stress
+    
+    def getTangent(self) -> float:
+        return self.state.tangent
     
 
     def getCopy(self):

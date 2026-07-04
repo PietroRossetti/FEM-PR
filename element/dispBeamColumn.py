@@ -39,14 +39,12 @@ class DispBeamColumn(Element):
         self.eleState.eleDispTrial = np.zeros((6,1))
         self.eleState.eleForcesCommitted = np.zeros((6,1))
         self.eleState.eleForcesTrial = np.zeros((6,1))
-        
-        self.eleStiffness = np.zeros((6,6))
 
     
     def getDofIDs(self):
         return super().getDofIDs()
     
-    def setTrialDisp(self, displacements: ndarray):
+    def elementStateDetermination(self, displacements: ndarray):
 
         # U: nodal displacements in global coordinates
         U = displacements
@@ -83,10 +81,10 @@ class DispBeamColumn(Element):
         self.eleStiffness = (T.T @ K @ T)
 
 
-    def getEleForces(self):
+    def getElementForces(self):
         return self.eleState.eleForcesTrial
     
-    def getEleStiffness(self):
+    def getElementStiffness(self):
         return self.eleStiffness
     
 

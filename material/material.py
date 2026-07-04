@@ -7,42 +7,48 @@ from abc import ABC, abstractmethod
 class MaterialState:
     '''
     state of a material (to date, only uniaxial materials)
-    - commit state: equilibrium state at the previous step
-    - trial state: material state at the current iteration
+    - commit state: equilibrium state at the previous step (suffix P)
+    - trial state: material state at the current iteration (same quantities as above without suffix P)
 
     modified by Solver
     '''
 
-    epsCommitted: float = 0.0 # converged strain
-    sigCommitted: float = 0.0 # converged stress
-    hstvCommitted: dict = field(default_factory=dict) # converged history variables
+    strainP:  float = 0.0  # converged strain
+    stressP:  float = 0.0  # converged stress
+    tangentP: float = 0.0 # converged tangent stiffness
+    hstvP:    dict  = field(default_factory=dict) # converged history variables
 
-    epsTrial: float = 0.0 # trial strain
-    sigTrial: float = 0.0 # trial stress
-    hstvTrial: dict = field(default_factory=dict) # trial history variables
+    strain:  float = 0.0 # trial strain
+    stress:  float = 0.0 # trial stress
+    tangent: float = 0.0 # trial tangent stiffness
+    hstv:    dict  = field(default_factory=dict) # trial history variables
 
     def commit(self) -> None:
         '''Solver transfer trial state to committed state after converged iteration'''
-        self.epsCommitted = self.epsTrial
-        self.sigCommitted = self.sigTrial
-        self.hstvCommitted = self.hstvTrial.copy()
+        self.strainP = self.strain
+        self.stressP = self.stress
+        self.tangentP = self.tangent
+        self.hstvP = self.hstv.copy()
 
     def revert(self) -> None:
         '''Solver revert to committed after diverged iteration (e.g. for adaptive time step)'''
-        self.epsTrial = self.epsCommitted
-        self.sigTrial = self.sigCommitted
-        self.hstvTrial = self.hstvCommitted.copy()
+        self.strain = self.strainP
+        self.stress = self.stressP
+        self.tangent = self.tangentP
+        self.hstv = self.hstvP.copy()
 
     
     def toDict(self) -> dict:
         '''create dict from MaterialState instance'''
         return {
-            "epsCommitted": self.epsCommitted,
-            "sigCommitted": self.sigCommitted,
-            "hstvCommitted": self.hstvCommitted,
-            "epsTrial": self.epsTrial,
-            "sigTrial": self.sigTrial,
-            "hstvTrial": self.hstvTrial
+            "strainP": self.strainP,
+            "stressP": self.stressP,
+            "tangentP": self.tangentP,
+            "hstvP": self.hstvP,
+            "strain": self.strain,
+            "stress": self.stress,
+            "tangent": self.tangent,
+            "hstv": self.hstv
         }
     
     @classmethod
@@ -69,19 +75,23 @@ class Material(ABC):
     
 
     @abstractmethod
-    def compute(
-        self,
-        eps: float,
-    ) -> tuple[float, float]:
+    def compute(self, eps: float) -> tuple[float, float]:
         '''
-        compute stress and stiffness given strain
+        compute stress and stiffness given strain and update trial state
 
         I: eps (trial strain epsP + deps)
-           state (committed material state) 
-        O:  sig (trial stress)
-            E   (trial stiffness)
+        O: sig (trial stress)
+           E   (trial tangent stiffness)
         '''
         ...
+    
+    @abstractmethod
+    def getStress(self) -> float:
+        return self.state.stress
+    
+    @abstractmethod
+    def getTangent(self) -> float:
+        return self.state.tangent
 
     @abstractmethod
     def getCopy(self):

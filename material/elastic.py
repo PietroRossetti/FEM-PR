@@ -19,16 +19,21 @@ class Elastic(Material):
         self.state = MaterialState()
         
 
-    def compute(
-		    self,
-		    eps: float,
-	) -> tuple[float, float]:
+    def compute(self, eps: float) -> tuple[float, float]:
         sig = self.E * eps
 		# update trial state
         # caller (Solver) will call commit()
-        self.state.epsTrial = eps
-        self.state.sigTrial = sig
+        self.state.strain = eps
+        self.state.stress = sig
+        self.state.tangent = self.E
+
         return sig, self.E
+    
+    def getStress(self):
+        return super().getStress()
+    
+    def getTangent(self):
+        return super().getTangent()
     
     def getCopy(self):
         return Elastic(

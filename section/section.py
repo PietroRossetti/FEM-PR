@@ -29,7 +29,7 @@ class Section(ABC):
         self.sectionState = SectionState()
 
     @abstractmethod
-    def setTrialSectionDeformation(self,deformations: ndarray) -> None:
+    def sectionStateDetermination(self,deformations: ndarray) -> None:
         ...
 
     @abstractmethod

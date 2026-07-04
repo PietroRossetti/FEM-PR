@@ -37,21 +37,21 @@ class Element(ABC):
         self.nodeJ = nodeJ
         self.geomTransf = geomTransf
         
-    
+
     @abstractmethod
     def initialize(self):
         ...
     
     @abstractmethod
-    def setTrialDisp(self):
+    def elementStateDetermination(self,displacements: ndarray):
         ...
     
     @abstractmethod
-    def getEleForces(self) -> ndarray:
+    def getElementForces(self) -> ndarray:
         ...
     
     @abstractmethod
-    def getEleStiffness(self) -> ndarray:
+    def getElementStiffness(self) -> ndarray:
         ...
     
     @abstractmethod

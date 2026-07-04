@@ -19,7 +19,7 @@ class Aggregator(Section):
         self.sectionState = SectionState()
         self.sectionStiffness = np.zeros((2,2))
 
-    def setTrialSectionDeformation(self, deformations: ndarray) -> None:
+    def sectionStateDetermination(self, deformations: ndarray) -> None:
         
         self.sectionState.sectionDeformationsTrial = deformations
         N, EA = self.axialMaterial.compute(float(deformations[0, 0]))
