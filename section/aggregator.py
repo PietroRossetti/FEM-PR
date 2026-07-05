@@ -1,4 +1,4 @@
-from .section import Section, SectionState
+from .section import Section
 from material.material import Material
 from numpy import ndarray
 import numpy as np
@@ -16,32 +16,34 @@ class Aggregator(Section):
 
         self.axialMaterial = axialMaterial
         self.bendingMaterial = bendingMaterial
-        self.sectionState = SectionState()
-        self.sectionStiffness = np.zeros((2,2))
 
-    def sectionStateDetermination(self, deformations: ndarray) -> None:
-        
-        self.sectionState.sectionDeformationsTrial = deformations
-        N, EA = self.axialMaterial.compute(float(deformations[0, 0]))
-        M, EI = self.bendingMaterial.compute(float(deformations[1, 0]))
+    def setSectionDeformations(self, e: ndarray) -> None:
+        '''
+        e: section deformations {eps, curvature}^t
+        '''
+        self.axialMaterial.compute(float(e[0, 0]))
+        self.bendingMaterial.compute(float(e[1, 0]))
 
+
+    def getSectionForces(self) -> ndarray:
+        N = self.axialMaterial.getStress()
+        M = self.bendingMaterial.getStress()
+        ''' s: section forces '''
         s = np.array([
             [N],
             [M]
         ])
+        return s
+
+    def getSectionStiffness(self) -> ndarray:
+        EA = self.axialMaterial.getTangent()
+        EI = self.bendingMaterial.getTangent()
+        ''' k: section stiffness '''
         k = np.array([
             [EA, 0.0],
             [0.0, EI]
         ])
-        
-        self.sectionState.sectionForcesTrial = s
-        self.sectionStiffness = k
-
-    def getSectionForces(self) -> ndarray:
-        return self.sectionState.sectionForcesTrial
-
-    def getSectionStiffness(self) -> ndarray:
-        return self.sectionStiffness
+        return k
 
     def getCopy(self):
         return Aggregator(
