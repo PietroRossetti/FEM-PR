@@ -116,11 +116,15 @@ print("F global from k @ u:\n", k @ u)
 '''
 u = np.array([[0,1,0,0,0,0]]).T
 print("\n","-"*100)
-beam.setTrialDisp(u)
-k = beam.getEleStiffness()
+
+m.getNode(1).state.disp = u[0:3].copy()
+m.getNode(2).state.disp = u[3:6].copy()
+beam.setElementDeformations()
+
+k = beam.getElementStiffness()
 T = beam.geomTransf.getTransfMatrix() # rotation matrix
 kloc = T @ k @ T.T
 print("k global:\n", k)
 print("k local:\n", kloc)
-print("F global from element:\n", beam.getEleForces())
+print("F global from element:\n", beam.getElementForces())
 print("F global from k @ u:\n", k @ u)

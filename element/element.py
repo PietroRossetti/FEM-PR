@@ -1,26 +1,8 @@
 from numpy import ndarray
-import numpy as np
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from node import Node
-from section.section import Section
+from beamIntegration.beamIntegration import BeamIntegration
 from geometricTransformation import GeometricTransformation
-
-class ElementState:
-
-    eleDispCommitted: ndarray
-    eleForcesCommitted: ndarray
-
-    eleDispTrial: ndarray
-    eleForcesTrial: ndarray
-
-    def commit(self):
-        self.eleDispCommitted = self.eleDispTrial.copy()
-        self.eleForcesCommitted = self.eleForcesTrial.copy()
-
-    def revert(self):
-        self.eleDispTrial = self.eleDispCommitted.copy()
-        self.eleForcesTrial = self.eleForcesCommitted.copy()
 
 
 class Element(ABC):
@@ -29,12 +11,13 @@ class Element(ABC):
             id: int|str,
             nodeI: Node,
             nodeJ: Node,
-            section: Section,
+            beamIntegration: BeamIntegration,
             geomTransf: GeometricTransformation
     ) -> None:
         self.id = id
         self.nodeI = nodeI
         self.nodeJ = nodeJ
+        self.beamIntegration = beamIntegration
         self.geomTransf = geomTransf
         
 
@@ -42,8 +25,16 @@ class Element(ABC):
     def initialize(self):
         ...
     
+    @ abstractmethod
+    def getNodalDisp(self) -> ndarray:
+        ...
+
     @abstractmethod
-    def elementStateDetermination(self,displacements: ndarray):
+    def setElementDeformations(self):
+        ...
+
+    @abstractmethod
+    def elementStateDetermination(self):
         ...
     
     @abstractmethod

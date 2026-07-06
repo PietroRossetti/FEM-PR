@@ -1,5 +1,4 @@
-from element.element import Element, ElementState
-
+from element.element import Element
 from node import Node
 from beamIntegration.beamIntegration import BeamIntegration
 from geometricTransformation.geometricTransformation import GeometricTransformation
@@ -23,7 +22,6 @@ class DispBeamColumn(Element):
         self.beamIntegration = beamIntegration
         self.sections = []
         self.geomTransf = geomTransf
-        self.eleState = ElementState()
 
         self.initialize()
     
@@ -34,41 +32,60 @@ class DispBeamColumn(Element):
         self.sections = [theSection.getCopy() for _ in range(nIP)]
         
         self.initialLength = self.geomTransf.getLength()
-        
-        self.eleState.eleDispCommitted = np.zeros((6,1))
-        self.eleState.eleDispTrial = np.zeros((6,1))
-        self.eleState.eleForcesCommitted = np.zeros((6,1))
-        self.eleState.eleForcesTrial = np.zeros((6,1))
 
     
     def getDofIDs(self):
         return super().getDofIDs()
     
-    def elementStateDetermination(self, displacements: ndarray):
+    def getNodalDisp(self) -> ndarray:
+        '''
+        assemble element displacements for node I,J displacements
+        '''
+        U = np.zeros((6,1))
+        dispNodeI = self.nodeI.getDisp()
+        dispNodeJ = self.nodeJ.getDisp()
 
-        # U: nodal displacements in global coordinates
-        U = displacements
+        U[0:3, 0:1] = dispNodeI
+        U[3:6, 0:1] = dispNodeJ
+        return U
+    
+    def setElementDeformations(self):
+        L = self.initialLength
+        # U: nodal displacements in global coords
+        U = self.getNodalDisp()
         # T: geometric transformation matrix
         T = self.geomTransf.getTransfMatrix()
         # u: nodal displacements in local coordinates
         u = T @ U
         # num of gauss IP, locations and weights
         nIP = self.beamIntegration.nIP
-        Xi = self.beamIntegration.getLocations(self.initialLength)
-        Wt = self.beamIntegration.getWeights(self.initialLength)
-        # F, K: element forces and element stiffness
-        F = np.zeros((6,1))
-        K = np.zeros((6,6))
+        Xi = self.beamIntegration.getLocations(L)
+
         for i in range(nIP):
             x = Xi[i]
-            wt = Wt[i]
-            L = self.initialLength
             # B: derivative matrix of disp shape function
             B = self.getBmatrix(x, L)
             # e: section deformations at currrent control section (gauss IP)
             e = B @ u
-            self.sections[i].setTrialSectionDeformation(e)
+            self.sections[i].setSectionDeformations(e)
 
+
+    def elementStateDetermination(self):
+        L = self.initialLength
+        # num of gauss IP, locations and weights
+        nIP = self.beamIntegration.nIP
+        Xi = self.beamIntegration.getLocations(L)
+        Wt = self.beamIntegration.getWeights(L)
+        # F, K: element forces and element stiffness
+        F = np.zeros((6,1))
+        K = np.zeros((6,6))
+
+        for i in range(nIP):
+            x = Xi[i]
+            wt = Wt[i]
+
+            # B: derivative matrix of disp shape function
+            B = self.getBmatrix(x, L)
             # s, k: section forces and section stiffness at current control section
             s = self.sections[i].getSectionForces()
             k = self.sections[i].getSectionStiffness()
@@ -76,21 +93,26 @@ class DispBeamColumn(Element):
             F += (B.T @ s)*wt
             K += (B.T @ k @ B)*wt
 
-        self.eleState.eleDispTrial = U
-        self.eleState.eleForcesTrial = (T.T @ F)
-        self.eleStiffness = (T.T @ K @ T)
+        return F,K
 
 
     def getElementForces(self):
-        return self.eleState.eleForcesTrial
-    
+        F, _ = self.elementStateDetermination()
+        T = self.geomTransf.getTransfMatrix()
+        Fg = T.T @ F # element forces in global coords
+        return Fg
+
+
     def getElementStiffness(self):
-        return self.eleStiffness
+        _, K = self.elementStateDetermination()
+        T = self.geomTransf.getTransfMatrix()
+        Kg = T.T @ K @ T # element stiffness in global coords
+        return Kg
     
 
     @staticmethod
     def getBmatrix(x:float, L:float) -> ndarray:
-
+        ''' derivative of displacement shape function for displacement-based beam-column element '''
         # bending shape functions
         B1 = -6/L**2 + x*12/L**3
         B2 = x*6/L**2 - 4/L

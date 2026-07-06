@@ -4,22 +4,22 @@ __init__ for FEM-PR
 
 from domain import Domain
 from model import Model
-from node import Node
+from node import Node, NodeState
 
 
 from material import Material, MaterialState, Elastic, Steel01
-from section import Section, SectionState, ElasticSection, Aggregator
+from section import Section, ElasticSection, Aggregator
 from beamIntegration import BeamIntegration, GaussLegendre, GaussLobatto
 from geometricTransformation import GeometricTransformation, LinearTransformation
-from element import Element, ElementState
+from element import Element
 
 __all__ = [
     "Domain",  # domain.py
     "Model",  # model.py
-    "Node",  # node.py
+    "Node", "NodeState",  # node.py
     "Material", "MaterialState", "Elastic", "Steel01",  # material
-    "Section", "SectionState", "ElasticSection", "Aggregator",  # section
+    "Section", "ElasticSection", "Aggregator",  # section
     "BeamIntegration", "GaussLegendre", "GaussLobatto",  # beamIntegration
     "GeometricTransformation", "LinearTransformation",  # geometricTransformation
-    "Element", "ElementState",  # element
+    "Element",  # element
 ]
